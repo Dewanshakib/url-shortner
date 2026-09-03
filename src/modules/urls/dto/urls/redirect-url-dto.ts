@@ -4,5 +4,5 @@ export class RedirectUrlDto {
   @IsString()
   @MaxLength(8)
   @MinLength(8)
-  readonly shorturl: string;
+  readonly shortid: string;
 }

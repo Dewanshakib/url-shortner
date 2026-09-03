@@ -1,46 +1,55 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { GenerateUrlDto } from 'src/modules/urls/dto/urls/generate-url-dto';
-import { RedirectUrlDto } from 'src/modules/urls/dto/urls/redirect-url-dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { GenerateUrlDto } from './dto/urls/generate-url-dto.js';
+import { RedirectUrlDto } from './dto/urls/redirect-url-dto.js';
+import { ConfigService } from '@nestjs/config';
+import ShortUniqueId from 'short-unique-id';
+import { PrismaService } from '../../database/prisma.service.js';
 
 @Injectable()
 export class UrlsService {
-  private readonly data = [
-    {
-      id: 1,
-      shortUrl: 'ax353xbt',
-      longUrl: 'http://www.youtube.com',
-    },
-    {
-      id: 2,
-      shortUrl: 'wYwfx2xf',
-      longUrl: 'http://www.google.com',
-    },
-  ];
+  constructor(
+    private readonly config: ConfigService,
+    private readonly prisma: PrismaService,
+  ) {}
 
-  async generateUrl(GenerateUrlDto: GenerateUrlDto) {
-    console.log('Long URL ===============> ', GenerateUrlDto);
-    const data = {
-      shortCode: 'ax353xbt',
-      shortUrl: 'http://localhost:3000/url/ax353xbt',
-    };
+  async generateUrl(userId: number, GenerateUrlDto: GenerateUrlDto) {
+    const { randomUUID } = new ShortUniqueId({ length: 8 });
+    // console.log('Long URL ===============> ', GenerateUrlDto);
+    const shortId = randomUUID();
+    // console.log("ShortId ==========================> ",shortId);
+    // console.log("Converted Url ==========================> ",convertedUrl);
 
-    return {
-        data,
-        statusCode:HttpStatus.CREATED,
-    };
+    const newShortUrl = await this.prisma.shortUrl.create({
+      data: {
+        short_id: shortId,
+        redirect_url: GenerateUrlDto.url,
+        user_id: userId,
+      },
+    });
+    // console.log("NEW SHOR URL ================> ",newShortUrl);
+    const convertedUrl =
+      this.config.get<string>('BASE_URL') + newShortUrl.short_id;
+    const data = { ...newShortUrl, shortUrl: convertedUrl };
+
+    return data;
   }
 
   async redirectUrl(RedirectUrlDto: RedirectUrlDto) {
-    console.log('ShortCode ===================> ', RedirectUrlDto);
+    // console.log('ShortCode ===================> ', RedirectUrlDto);
+    // console.log('ShortId ==============> ', RedirectUrlDto.shortid);
+    const shortUrl = await this.prisma.shortUrl.findFirst({
+      where: { short_id: RedirectUrlDto.shortid },
+    });
 
-    const found = this.data.find((u) => u.shortUrl == RedirectUrlDto.shorturl);
-    if (!found) {
-      throw new NotFoundException('Not found');
+    if (!shortUrl) {
+      throw new NotFoundException('Invalid url');
     }
+
+    // console.log("ShortUrl ===============> ",shortUrl);
 
     return {
       statusCode: 302,
-      url: found.longUrl,
+      url: shortUrl.redirect_url,
     };
   }
 }

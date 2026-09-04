@@ -21,8 +21,14 @@ export class AuthController {
   }
 
   // @UseGuards(AuthGuard)
-  @Get("profile")
-  async profile (@Request() req:any){
+  @Get('profile')
+  async profile(@Request() req: any) {
     return req.user;
+  }
+
+  @Post('logout')
+  async logout(@Request() request: any) {
+    const userId = request.user.sub;
+    return this.authService.logout(+userId);
   }
 }

@@ -38,18 +38,47 @@ export class UrlsService {
     // console.log('ShortCode ===================> ', RedirectUrlDto);
     // console.log('ShortId ==============> ', RedirectUrlDto.shortid);
     const shortUrl = await this.prisma.shortUrl.findFirst({
-      where: { short_id: RedirectUrlDto.shortid },
+      where: { short_id: RedirectUrlDto.shortId },
     });
 
     if (!shortUrl) {
       throw new NotFoundException('Invalid url');
     }
 
-    // console.log("ShortUrl ===============> ",shortUrl);
+    await this.prisma.shortUrl.update({
+      where: { id: shortUrl.id },
+      data: {
+        click_count: {
+          increment: 1,
+        },
+      },
+    });
 
     return {
       statusCode: 302,
       url: shortUrl.redirect_url,
     };
+  }
+
+  async urlsByUser(userId: number, query: { page: number }) {
+    // console.log('Query =============> ', query);
+    const page = Number(query.page);
+    const limit = 5;
+    const offset = (page - 1) * limit;
+
+    // console.log("Page ==============>", page);
+    // console.log("Offset ==============>", offset);
+
+    const urlsByUser = await this.prisma.shortUrl.findMany({
+      where: { user_id: userId },
+      skip: offset,
+      take: limit,
+    });
+
+    if (!urlsByUser) {
+      throw new NotFoundException('No short url found for this user');
+    }
+
+    return urlsByUser;
   }
 }

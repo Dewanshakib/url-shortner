@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterUserDto } from './dto/register-user-dto.js';
 import { LoginUserDto } from './dto/login-user-dto.js';
 import { UserService } from '../user/users.service.js';
@@ -11,7 +16,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
-    private readonly jwt:JwtService
+    private readonly jwt: JwtService,
   ) {}
 
   async register(RegisterUserDto: RegisterUserDto) {
@@ -34,12 +39,12 @@ export class AuthService {
         ...RegisterUserDto,
         password: hashedPassword,
       },
-      select:{
-        id:true,
-        name:true,
-        email:true,
-        created_at:true
-      }
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        created_at: true,
+      },
     });
 
     return newUser;
@@ -48,31 +53,47 @@ export class AuthService {
   async login(LoginUserDto: LoginUserDto) {
     const found = await this.userService.findOne(LoginUserDto.email);
 
-    if(!found){
-      throw new NotFoundException("User is not registerd with this email address");
+    if (!found) {
+      throw new NotFoundException(
+        'User is not registerd with this email address',
+      );
     }
 
     // match credentials
-    const isMatched = await bcrypt.compare(LoginUserDto.password,found.password);
-    if (!isMatched){
-        throw new UnauthorizedException();
+    const isMatched = await bcrypt.compare(
+      LoginUserDto.password,
+      found.password,
+    );
+    if (!isMatched) {
+      throw new UnauthorizedException();
     }
 
-
     // generate jwt access token
-    const accessToken = await this.generateAccessToken(found.id,found.email);
+    const accessToken = await this.generateAccessToken(found.id, found.email);
 
-    const response = {accessToken,email:found.email};
+    const response = { accessToken, email: found.email };
 
     return response;
+  }
+
+  async logout(userId: number) {
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { is_active: false },
+      select: {
+        name: true,
+        email: true,
+        is_active: true,
+      },
+    });
   }
 
   async hashPassword(password: string, salt: number) {
     return await bcrypt.hash(password, salt);
   }
 
-  async generateAccessToken (userId:number,email:string){
-    const payload = {sub:userId,email}
-    return await this.jwt.signAsync(payload)
+  async generateAccessToken(userId: number, email: string) {
+    const payload = { sub: userId, email };
+    return await this.jwt.signAsync(payload);
   }
 }

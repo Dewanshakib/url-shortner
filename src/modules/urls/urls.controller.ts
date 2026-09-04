@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Redirect,
   Request,
 } from '@nestjs/common';
@@ -26,15 +27,25 @@ export class UrlsController {
     @Body() GenerateUrlDto: GenerateUrlDto,
   ) {
     const userId = req.user.sub;
+    // console.log("Hitting ============= ");
+    // console.log("USERID ==========> ",userId);
     return this.urlService.generateUrl(userId, GenerateUrlDto);
   }
 
   @Public()
-  @Get(':shortid')
+  @Get(':shortId')
   @Redirect()
   @SkipResponse()
   async redirectUrl(@Param() params: RedirectUrlDto) {
     // console.log('ShortCode ===================> ', params);
     return this.urlService.redirectUrl(params);
+  }
+
+  @Get('/urls/:userId')
+  async urlsByUser(@Param() param: { userId: string }, @Query() query: any) {
+    // console.log("Query ===============> ",query);
+    // console.log("Hitting.............");
+    // console.log("UserId ==============> ",param.userId);
+    return this.urlService.urlsByUser(+param.userId, query);
   }
 }

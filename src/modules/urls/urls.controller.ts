@@ -15,6 +15,7 @@ import { GenerateUrlDto } from './dto/urls/generate-url-dto.js';
 import { RedirectUrlDto } from './dto/urls/redirect-url-dto.js';
 import { Public } from '../../common/decorator/public.decorator.js';
 import { SkipResponse } from '../../common/decorator/skip-response.decorator.js';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -22,7 +23,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
+  ApiParam, 
   ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -35,6 +36,7 @@ export class UrlsController {
 
   @Post('urls/short-url')
   @HttpCode(201)
+  @Throttle({ CREATE: { } })
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Generate a new short URL for the authenticated user',
@@ -56,6 +58,7 @@ export class UrlsController {
 
   @Public()
   @Get(':shortId')
+  @Throttle({ REDIRECT: { } })
   @Redirect()
   @SkipResponse()
   @ApiOperation({ summary: 'Redirect a short URL to the original long URL' })
@@ -72,6 +75,10 @@ export class UrlsController {
   }
 
   @Get('/urls/:userId')
+  // TODO (Exercise 2 for you): Add throttler for LIST
+  // Hint: use @Throttle({ LIST: { limit: 60, ttl: 3600000 } })
+  // Values from .env -> LIST_TTL=3600000, LIST_LIMIT=60, name in app.module.ts: 'LIST'
+  @Throttle({ LIST: {  } })
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'List short URLs created by a specific user (paginated)',

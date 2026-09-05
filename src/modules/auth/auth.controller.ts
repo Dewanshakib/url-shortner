@@ -3,6 +3,7 @@ import { RegisterUserDto } from './dto/register-user-dto.js';
 import { AuthService } from './auth.service.js';
 import { LoginUserDto } from './dto/login-user-dto.js';
 import { Public } from '../../common/decorator/public.decorator.js';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -22,6 +23,7 @@ export class AuthController {
 
   @Public()
   @Post('register')
+  @Throttle({ AUTH: {  } })
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: RegisterUserDto })
   @ApiCreatedResponse({
@@ -36,6 +38,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @Throttle({ AUTH: {  } })
   @ApiOperation({
     summary: 'Authenticate a user and obtain a JWT access token',
   })
@@ -48,6 +51,7 @@ export class AuthController {
   }
 
   @Get('profile')
+  @Throttle({ PROFILE: { } })
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get the profile of the authenticated user' })
   @ApiOkResponse({ description: 'The authenticated user profile.' })
@@ -57,6 +61,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @Throttle({ LOGOUT: { } })
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Log the user out (deactivate session)' })
   @ApiOkResponse({ description: 'User has been logged out.' })

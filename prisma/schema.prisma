@@ -8,30 +8,30 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(255)
-  email String @db.VarChar(255) @unique
-  password String 
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(255)
+  email     String  @unique @db.VarChar(255)
+  password  String
   is_active Boolean @default(true)
 
   // user -> urls
   short_urls ShortUrl[]
 
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt 
+  updated_at DateTime @updatedAt
 
   @@map("users")
 }
 
 model ShortUrl {
-  id Int @id @default(autoincrement())
-  short_id String @db.VarChar(8)
+  id           Int    @id @default(autoincrement())
+  short_id     String @unique @db.VarChar(8)
   redirect_url String
-  click_count Int @default(0)
+  click_count  Int    @default(0)
 
-  user User @relation(fields: [user_id],references: [id],onDelete: Cascade)
+  user    User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id Int
 
+  @@index([short_id])
   @@map("short_urls")
-  @@index([short_id]) 
 }

@@ -1,5 +1,6 @@
-import { Controller } from "@nestjs/common";
+import { Controller } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-
-@Controller("users")
-export class UserController {}   
+@ApiTags('Users')
+@Controller('users')
+export class UserController {}

@@ -7,9 +7,7 @@ import {
 } from '@nestjs/common';
 
 @Catch()
-export class HttpExceptionFilter
-  implements ExceptionFilter
-{
+export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse();
 
@@ -33,7 +31,7 @@ export class HttpExceptionFilter
 
         message = Array.isArray(errorResponse.message)
           ? errorResponse.message.join(', ')
-          : errorResponse.message ?? message;
+          : (errorResponse.message ?? message);
       }
     }
 

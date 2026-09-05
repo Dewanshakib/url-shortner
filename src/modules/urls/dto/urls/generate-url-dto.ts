@@ -1,6 +1,11 @@
-import { IsString, IsUrl } from "class-validator"
+import { IsUrl } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class GenerateUrlDto {
-    @IsUrl()
-    readonly url: string;
+  @ApiProperty({
+    example: 'https://www.google.com',
+    description: 'The long URL to be shortened',
+  })
+  @IsUrl()
+  readonly url: string;
 }

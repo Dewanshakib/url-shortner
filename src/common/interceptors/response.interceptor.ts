@@ -10,20 +10,11 @@ import { map } from 'rxjs/operators';
 import { SkipResponse } from '../decorator/skip-response.decorator.js';
 
 @Injectable()
-export class ResponseInterceptor<T>
-  implements NestInterceptor<T>
-{
+export class ResponseInterceptor<T> implements NestInterceptor<T> {
   constructor(private readonly reflector: Reflector) {}
 
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler<T>,
-  ): Observable<any> {
-
-    const skipResponse = this.reflector.get(
-      SkipResponse,
-      context.getHandler(),
-    );
+  intercept(context: ExecutionContext, next: CallHandler<T>): Observable<any> {
+    const skipResponse = this.reflector.get(SkipResponse, context.getHandler());
 
     if (skipResponse) {
       return next.handle();
